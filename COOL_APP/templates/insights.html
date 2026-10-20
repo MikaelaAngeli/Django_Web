@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="panel spending-calendar-panel standalone-page-panel" aria-labelledby="calendar-title">
+    <div class="panel-heading calendar-heading">
+        <div><p class="eyebrow">MONTHLY ACTIVITY</p><h2 id="calendar-title">Spending Calendar</h2></div>
+        <div class="calendar-navigation">
+            <button type="button" id="calendar-previous" aria-label="Previous month">‹</button>
+            <strong id="calendar-month-label">{{ current_month }}</strong>
+            <button type="button" id="calendar-next" aria-label="Next month">›</button>
+        </div>
+    </div>
+    <p class="calendar-total" id="calendar-total">₱0.00 spent this month</p>
+    <div class="calendar-grid" id="calendar-grid" role="grid" aria-label="Monthly spending calendar"></div>
+    <p class="calendar-help">Select a day to see its transactions.</p>
+</section>
+
+<section class="panel insights-panel standalone-page-panel">
+    <div class="panel-heading">
+        <div><p class="eyebrow">INSIGHTS</p><h2>Where your money goes</h2></div>
+        <span class="period">Spending by category</span>
+    </div>
+    {% if category_totals %}
+        <div class="insights-chart" aria-label="Bar chart of spending by category">
+        {% for item in category_totals %}
+            <div class="insight-bar-row">
+                <span class="insight-category">{{ item.icon }} {{ item.category }}</span>
+                <div class="insight-bar-track"><span class="insight-bar-fill fill-{{ forloop.counter }}" style="width: {{ item.percentage }}%"></span></div>
+                <strong>₱{{ item.total|floatformat:2 }}</strong>
+                <small>{{ item.percentage|floatformat:1 }}%</small>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">◌</span>
+            <p>Your spending story starts here.</p>
+            <small>Add your first expense to see your spending breakdown.</small>
+            <a class="empty-cta" href="{% url 'dashboard' %}#add-expense">+ Add your first expense</a>
+        </div>
+    {% endif %}
+</section>
+
+<section class="panel insights-summary standalone-page-panel">
+    <div class="panel-heading">
+        <div><p class="eyebrow">AT A GLANCE</p><h2>This month's spending</h2></div>
+        <span class="period">{{ current_month }}</span>
+    </div>
+    <div class="insights-summary-stats">
+        <div><span>Spent</span><strong>₱{{ month_spent|floatformat:2 }}</strong></div>
+        <div><span>Budget remaining</span><strong>₱{{ budget_remaining|floatformat:2 }}</strong></div>
+        <div><span>Transactions</span><strong>{{ budget_transaction_count }}</strong></div>
+    </div>
+</section>
+
+<div class="calendar-transaction-data" hidden>
+    {% for transaction in all_transactions %}{% include "transaction_row.html" with transaction=transaction %}{% endfor %}
+</div>
+{% endblock %}

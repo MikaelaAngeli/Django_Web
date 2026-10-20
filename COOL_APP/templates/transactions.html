@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="panel transactions-panel standalone-page-panel" id="transactions">
+    <div class="panel-heading">
+        <div><p class="eyebrow">ALL ACTIVITY</p><h2>Manage Transactions</h2></div>
+        <span class="count-badge">{{ transaction_count }} total</span>
+    </div>
+    <div class="transaction-filters">
+        <label class="search-field">Search transactions<input type="search" id="transaction-search" placeholder="Search transactions..."></label>
+        <label>Category<select id="filter-category"><option value="">All categories</option>{% for value, label in form.category.field.choices %}{% if value %}<option value="{{ value }}">{{ label }}</option>{% endif %}{% endfor %}</select></label>
+        <label>From<input type="date" id="filter-from" value="{{ filter_from }}"></label>
+        <label>To<input type="date" id="filter-to" value="{{ filter_to }}"></label>
+        <label>Payment method<select id="filter-payment"><option value="">All methods</option>{% for value, label in form.payment_method.field.choices %}{% if value %}<option value="{{ value }}">{{ label }}</option>{% endif %}{% endfor %}</select></label>
+        <label>Type<select id="filter-type"><option value="">Income &amp; expenses</option><option value="income">Income</option><option value="expense">Expense</option></select></label>
+        <label>Sort<select id="sort-transactions"><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="highest">Highest amount</option><option value="lowest">Lowest amount</option></select></label>
+    </div>
+    <div class="quick-filters" role="group" aria-label="Quick date filters">
+        <button type="button" class="quick-filter active" data-range="all">All Time</button>
+        <button type="button" class="quick-filter" data-range="today">Today</button>
+        <button type="button" class="quick-filter" data-range="week">This Week</button>
+        <button type="button" class="quick-filter" data-range="month">This Month</button>
+    </div>
+    <div class="transaction-list filtered-transactions" id="filtered-transactions">
+        {% for transaction in all_transactions %}
+            {% include "transaction_row.html" with transaction=transaction %}
+        {% empty %}
+        <div class="empty-transactions">
+            <span>✦</span>
+            <div><strong>Your spending story starts here.</strong><p>Add your first transaction from your Home page.</p></div>
+            <a class="empty-cta" href="{% url 'dashboard' %}#add-expense">+ Add your first transaction</a>
+        </div>
+        {% endfor %}
+    </div>
+    <p class="no-filter-results" id="no-filter-results" hidden>No transactions match these filters.</p>
+</section>
+{% endblock %}

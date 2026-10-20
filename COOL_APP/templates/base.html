@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBuddy | {{ page_title|default:"Home" }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'COOL_APP/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'COOL_APP/dashboard_features.css' %}">
+    <link rel="stylesheet" href="{% static 'COOL_APP/polish.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="{% url 'dashboard' %}">
+                <span class="brand-mark">₱</span>
+                <span>BudgetBuddy</span>
+            </a>
+            <nav class="nav" aria-label="Main navigation">
+                <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{% url 'dashboard' %}"><span>⌂</span> Home</a>
+                <a class="nav-link {% if active_page == 'transactions' %}active{% endif %}" href="{% url 'transactions' %}"><span>↕</span> Transactions</a>
+                <a class="nav-link {% if active_page == 'insights' %}active{% endif %}" href="{% url 'insights' %}"><span>◔</span> Insights</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="tip-card">
+                    <span class="tip-icon">✦</span>
+                    <strong>Small steps, big wins.</strong>
+                    <p>Track every peso and make your goals feel closer.</p>
+                </div>
+                <span class="version">Personal finance, made simple</span>
+            </div>
+        </aside>
+        <main class="main-content" id="home" data-user-id="{{ user.pk|default:'guest' }}" data-today="{{ today_iso }}">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">PERSONAL FINANCE</p>
+                    {% if active_page == "home" %}
+                        <h1>{{ greeting }}, {{ display_name }}<span class="accent">.</span></h1>
+                    {% else %}
+                        <h1>{{ page_title }}<span class="accent">.</span></h1>
+                    {% endif %}
+                    <p class="greeting-subtitle">{{ page_subtitle }}</p>
+                </div>
+                <div class="profile-pill">
+                    <span class="avatar">BB</span>
+                    {% if user.is_authenticated %}
+                        <span class="profile-name">{{ display_name }}</span>
+                    {% else %}
+                        <a class="signup-link" href="{% url 'signup' %}">Sign up</a>
+                    {% endif %}
+                </div>
+            </header>
+            {% if messages %}
+                {% for message in messages %}<div class="notice {{ message.tags }}">{{ message }}</div>{% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
+            <footer>BudgetBuddy <span>·</span> Make every peso count.</footer>
+        </main>
+    </div>
+    <nav class="bottom-nav" aria-label="Mobile navigation">
+        <a class="{% if active_page == 'home' %}active{% endif %}" href="{% url 'dashboard' %}"><span>⌂</span>Home</a>
+        <a class="{% if active_page == 'transactions' %}active{% endif %}" href="{% url 'transactions' %}"><span>↕</span>Transactions</a>
+        <a class="{% if active_page == 'insights' %}active{% endif %}" href="{% url 'insights' %}"><span>◔</span>Insights</a>
+    </nav>
+    {{ local_storage_data|json_script:"budgetbuddy-server-data" }}
+    <script src="{% static 'COOL_APP/dashboard.js' %}" defer></script>
+</body>
+</html>

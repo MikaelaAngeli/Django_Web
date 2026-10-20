@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card budget-card" aria-labelledby="budget-title">
+    <div class="budget-main">
+        <p class="card-label" id="budget-title">MONTHLY BUDGET</p>
+        {% if budget_amount > 0 %}
+            <p class="hero-amount"><span>₱</span>{{ budget_amount|floatformat:2 }}</p>
+            <p class="hero-subtitle">Spent ₱{{ month_spent|floatformat:2 }} · Remaining ₱{{ budget_remaining|floatformat:2 }}</p>
+        {% else %}
+            <p class="hero-amount budget-not-set">Set a budget to get started</p>
+            <p class="hero-subtitle">Track how this month's spending compares with your goal.</p>
+        {% endif %}
+        <div class="budget-progress" role="progressbar" aria-label="Monthly budget used" aria-valuenow="{{ budget_progress|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+            <span style="width: {{ budget_progress }}%"></span>
+        </div>
+        <div class="budget-progress-labels">
+            <span>{{ budget_used|floatformat:1 }}% of budget used</span>
+            <span>{{ budget_transaction_count }} transaction{{ budget_transaction_count|pluralize }} this month</span>
+        </div>
+        <p class="budget-status {% if budget_amount > 0 and not within_budget %}over-budget{% endif %}">
+            {% if budget_amount <= 0 %}Set a monthly budget to track your progress.{% elif within_budget %}You're within your budget.{% else %}You've exceeded your monthly budget.{% endif %}
+        </p>
+    </div>
+    <form class="budget-form" method="post" action="{% url 'save_budget' %}">
+        {% csrf_token %}
+        <label for="{{ budget_form.amount.id_for_label }}">Monthly limit</label>
+        {{ budget_form.amount }}
+        <button type="submit">{% if budget_amount > 0 %}Update budget{% else %}Set budget{% endif %}</button>
+        {% if not user.is_authenticated %}<small><a href="{% url 'signup' %}">Sign up to save a budget</a></small>{% endif %}
+    </form>
+</section>
+
+<section class="stats-grid" aria-label="Income and expense summary">
+    <article class="stat-card"><div class="stat-icon mint">↗</div><p>INCOME</p><strong>₱{{ total_income|floatformat:2 }}</strong><small>All recorded income</small></article>
+    <article class="stat-card"><div class="stat-icon peach">↘</div><p>EXPENSES</p><strong>₱{{ total_spent|floatformat:2 }}</strong><small>All recorded expenses</small></article>
+    <article class="stat-card"><div class="stat-icon lavender">₱</div><p>REMAINING</p><strong>₱{{ remaining|floatformat:2 }}</strong><small>Income minus expenses</small></article>
+    <article class="stat-card"><div class="stat-icon peach">#</div><p>TRANSACTIONS</p><strong>{{ transaction_count }}</strong><small>All recorded activity</small></article>
+</section>
+
+<div class="content-grid">
+    <section class="panel" aria-labelledby="breakdown-title">
+        <div class="panel-heading">
+            <div><p class="eyebrow">BREAKDOWN</p><h2 id="breakdown-title">Spending Breakdown</h2></div>
+            <a class="period" href="{% url 'insights' %}">View insights →</a>
+        </div>
+        {% if category_totals %}
+            {% for item in category_totals|slice:":5" %}
+            <div class="category-row">
+                <div class="category-meta"><span class="category-emoji">{{ item.icon }}</span><span>{{ item.category }}</span><strong>₱{{ item.total|floatformat:2 }} <small>{{ item.percentage|floatformat:1 }}%</small></strong></div>
+                <div class="bar-track"><span class="bar-fill fill-{{ forloop.counter }}" style="width: {{ item.percentage }}%"></span></div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <span class="empty-icon">◌</span>
+                <p>Your spending story starts here.</p>
+                <small>Add your first expense to see your spending breakdown.</small>
+                <a class="empty-cta" href="#add-expense">+ Add your first expense</a>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="panel add-panel" id="add-expense">
+        <div class="panel-heading">
+            <div><p class="eyebrow">QUICK ACTION</p><h2 id="expense-form-title">{% if is_editing %}Edit transaction{% else %}Add a transaction{% endif %}</h2></div>
+            <span class="plus">+</span>
+        </div>
+        {% if user.is_authenticated %}
+        <form method="post" id="transaction-form" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="expense_id" id="expense-id" value="{{ editing_expense_id }}">
+            {% if form.non_field_errors %}<div class="form-error">{{ form.non_field_errors|striptags }}</div>{% endif %}
+            <label>Type{{ form.transaction_type }}<span class="field-error" data-error-for="transaction_type">{% if form.transaction_type.errors %}{{ form.transaction_type.errors|striptags }}{% endif %}</span></label>
+            <label>Amount{{ form.amount }}<span class="field-error" data-error-for="amount">{% if form.amount.errors %}{{ form.amount.errors|striptags }}{% endif %}</span></label>
+            <label>Category{{ form.category }}<span class="field-error" data-error-for="category">{% if form.category.errors %}{{ form.category.errors|striptags }}{% endif %}</span></label>
+            <label>Description{{ form.description }}<span class="field-error">{% if form.description.errors %}{{ form.description.errors|striptags }}{% endif %}</span></label>
+            <label>Date{{ form.date }}<span class="field-error">{% if form.date.errors %}{{ form.date.errors|striptags }}{% endif %}</span></label>
+            <label>Payment method{{ form.payment_method }}<span class="field-error">{% if form.payment_method.errors %}{{ form.payment_method.errors|striptags }}{% endif %}</span></label>
+            <button class="primary-button" type="submit" id="transaction-submit">{% if is_editing %}Update transaction{% else %}Save transaction{% endif %} <span>→</span></button>
+            <button class="cancel-edit" type="button" id="cancel-edit" {% if not is_editing %}hidden{% endif %}>Cancel editing</button>
+        </form>
+        {% else %}
+        <div class="login-state">
+            <span class="login-icon">↗</span><h3>Create an account to track your money</h3>
+            <p>Your dashboard is ready. Create an account to start building your personal spending history.</p>
+            <a class="primary-button auth-button" href="{% url 'signup' %}">Create your account <span>→</span></a>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<section class="panel transactions-panel">
+    <div class="panel-heading">
+        <div><p class="eyebrow">ACTIVITY</p><h2>Recent Transactions</h2></div>
+        <a class="count-badge" href="{% url 'transactions' %}">{{ transaction_count }} total · View all</a>
+    </div>
+    {% if recent_expenses %}
+    <div class="transaction-list">
+        {% for transaction in recent_expenses %}{% include "transaction_row.html" with transaction=transaction %}{% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-transactions">
+        <span>✦</span><div><strong>Your spending story starts here.</strong><p>Add your first expense to see it in your activity.</p></div>
+        <a class="empty-cta" href="#add-expense">+ Add your first expense</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

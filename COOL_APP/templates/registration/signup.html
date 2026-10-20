@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create account | BudgetBuddy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'COOL_APP/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'COOL_APP/auth.css' %}">
+    <link rel="stylesheet" href="{% static 'COOL_APP/polish.css' %}">
+</head>
+<body class="auth-page">
+    <main class="auth-card">
+        <a class="brand auth-brand" href="{% url 'dashboard' %}"><span class="brand-mark">₱</span><span>BudgetBuddy</span></a>
+        <p class="eyebrow">GET STARTED</p>
+        <h1>Build better money habits.</h1>
+        <p class="auth-intro">Create your free account and start seeing your spending clearly.</p>
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <label>{{ field.label }} {{ field }}{% if field.help_text %}<small>{{ field.help_text|striptags }}</small>{% endif %}{% if field.errors %}<span class="field-error">{{ field.errors|striptags }}</span>{% endif %}</label>
+            {% endfor %}
+            <button class="primary-button" type="submit">Create account <span>→</span></button>
+        </form>
+    </main>
+</body>
+</html>

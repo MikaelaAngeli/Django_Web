@@ -1,0 +1,32 @@
+<article class="transaction transaction-row"
+    data-transaction
+    data-id="{{ transaction.expense_id }}"
+    data-type="{{ transaction.transaction_type }}"
+    data-amount="{{ transaction.amount }}"
+    data-category="{{ transaction.category }}"
+    data-description="{{ transaction.description }}"
+    data-date="{{ transaction.date|date:'Y-m-d' }}"
+    data-payment="{{ transaction.payment_method }}">
+    <span class="transaction-icon">{{ transaction.category_icon }}</span>
+    <div class="transaction-main">
+        <strong>{{ transaction.category }}</strong>
+        <small>{{ transaction.description|default:"No description" }}</small>
+        <small>{{ transaction.date|date:"F j, Y" }}</small>
+    </div>
+    <span class="payment">{{ transaction.payment_method }}</span>
+    <strong class="transaction-amount {% if transaction.transaction_type == 'income' %}income-amount{% endif %}">
+        {% if transaction.transaction_type == "income" %}+{% else %}−{% endif %} ₱{{ transaction.amount|floatformat:2 }}
+    </strong>
+    {% if user.is_authenticated %}
+    <details class="transaction-menu">
+        <summary aria-label="Transaction actions">⋮</summary>
+        <div class="transaction-menu-options">
+            <a class="edit-transaction" href="{% url 'dashboard' %}?edit={{ transaction.expense_id }}">Edit</a>
+            <form method="post" action="{% url 'delete_transaction' transaction.expense_id %}" class="delete-transaction-form">
+                {% csrf_token %}
+                <button type="submit">Delete</button>
+            </form>
+        </div>
+    </details>
+    {% endif %}
+</article>
